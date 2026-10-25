@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="128" viewBox="0 0 512 128" shape-rendering="crispEdges">
+<defs><g id="planet"><circle cx="64" cy="62" r="32" fill="#f7a5c5" stroke="#b33f70" stroke-width="5"/><circle cx="55" cy="51" r="18" fill="#ffcae0"/><path fill="#f47cae" d="M50 44h9v-6h9v6h8v9h-8v8h-9v-8h-9z"/><path fill="#fff0f7" d="M42 42h8v8h-8zM58 32h7v7h-7zM75 54h7v7h-7z"/><path fill="#a93c67" d="M14 79h12V67h12V55h12V43h12V31h25v12H75v12H63v12H51v12H39v12H27v12H14z"/><path fill="#ed78a6" d="M24 66h12V54h12V42h12V36h22v8H70v12H58v12H46v12H34v12H22V80h2z"/><path fill="#a93c67" d="M80 76h12V64h12V52h10v12h-10v12H92v12H80z"/></g></defs>
+<g transform="translate(0 0)"><use href="#planet" transform="translate(0 0)"/></g>
+<g transform="translate(128 0)"><use href="#planet" transform="translate(0 -3)"/><path fill="#fff1f7" d="M30 23h6v6h-6zM96 26h6v6h-6z"/></g>
+<g transform="translate(256 0)"><use href="#planet" transform="translate(0 2)"/><path fill="#fff1f7" d="M25 29h6v6h-6zM98 19h6v6h-6zM91 93h6v6h-6z"/></g>
+<g transform="translate(384 0)"><use href="#planet" transform="translate(0 -1)"/><path fill="#fff1f7" d="M29 24h6v6h-6zM96 28h6v6h-6zM18 83h6v6h-6z"/></g>
+</svg>
