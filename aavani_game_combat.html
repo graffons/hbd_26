@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>A Little Journey to You ♡</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+:root{--ink:#8e527c;--pink:#f7b8d0;--lav:#c9b8f4;--cream:#fff7ee;--green:#b7d9b1}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:linear-gradient(#f9d7ec,#d9d2fb 60%,#fff0df);color:var(--ink);font-family:'Press Start 2P',monospace;display:flex;align-items:center;justify-content:center;padding:16px;overflow-x:hidden}
+.wrap{width:min(960px,100%);text-align:center}.eyebrow{font-size:10px;letter-spacing:1px;line-height:1.8}.title{font-size:clamp(18px,4vw,30px);line-height:1.7;margin:12px 0;color:#9b5c91;text-shadow:2px 2px #fff}.subtitle{font-family:'VT323',monospace;font-size:26px;margin:6px 0 14px}
+.panel{background:#fff9f5eF;border:4px solid white;outline:3px solid #d7a9d3;border-radius:12px;padding:clamp(12px,3vw,24px);box-shadow:0 9px 0 #c8a1ce}
+canvas{display:block;width:100%;height:auto;image-rendering:pixelated;border:3px solid #fff;outline:2px solid #d9b4d9;border-radius:5px;background:#e8d9ff;touch-action:none}
+button{font:inherit;font-size:10px;line-height:1.7;border:2px solid white;background:#ef8fb3;color:#fff;border-radius:999px;padding:12px 16px;box-shadow:0 3px 0 #c76f9b;cursor:pointer;margin:5px}button.secondary{background:#fff;color:#9b5c91;border-color:#e6b8d0}button:active{transform:translateY(2px);box-shadow:0 1px 0 #c76f9b}
+.hud{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:9px;line-height:1.8;margin:0 0 10px}.controls{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}.move{display:flex;gap:8px}.touch{width:58px;height:52px;padding:0;font-size:18px;touch-action:none}
+.help{font-family:'VT323',monospace;font-size:22px;line-height:1.2;margin:10px 0 0}.hidden{display:none!important}
+.letter{max-width:620px;margin:10px auto 0;background:#fffdf6;border:3px solid #efbfd3;box-shadow:0 6px 0 #e6c5dc;padding:clamp(18px,4vw,32px);font-family:'VT323',monospace;font-size:27px;line-height:1.3;text-align:left;color:#77516f;min-height:160px;white-space:pre-wrap}
+.heart{color:#ec7cae}.pixel-deco{font-size:24px;letter-spacing:12px;margin:10px}
+@media(min-width:700px){.touch-controls{display:none}}@media(max-width:699px){.eyebrow{font-size:8px}.controls{margin-top:8px}.touch{width:52px;height:48px}.letter{font-size:24px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">A TINY BIRTHDAY ADVENTURE</div>
+  <h1 class="title">A Little Journey to You <span class="heart">♡</span></h1>
+  <section class="panel" id="start">
+    <div class="pixel-deco">✦ ♡ ✦</div>
+    <div class="subtitle">A little adventure, just for you.</div>
+    <p class="help">Collect the floating hearts and find the mailbox at the end.</p>
+    <p class="help">No rush, no lives to lose. Just a tiny journey ♡</p><p class="help">Find the flower to unlock magic balls. Press X / K to throw them at HATE!</p>
+    <button id="play">PLAY THE GAME ♡</button>
+    <button class="secondary" id="backFromStart">BACK TO BIRTHDAY SITE</button>
+  </section>
+  <section class="panel hidden" id="game">
+    <div class="hud"><span id="count">♡ Hearts: 0 / 5</span><span>Move: ← → or A / D · Jump: Space / ↑</span></div>
+    <canvas id="world" width="800" height="360" aria-label="Pixel platform game"></canvas>
+    <div class="controls touch-controls">
+      <div class="move"><button class="touch" id="left" aria-label="Move left">◀</button><button class="touch" id="right" aria-label="Move right">▶</button></div>
+      <div class="move"><button class="touch" id="jump" aria-label="Jump">↑</button><button class="touch" id="shoot" aria-label="Throw magic ball">✦</button></div>
+    </div>
+    <p class="help">Collect hearts, grab the flower power-up, and press X / K to throw magic balls at the HATE enemies!</p>
+    <button class="secondary" id="restart">START OVER</button>
+  </section>
+  <section class="panel hidden" id="ending">
+    <div class="pixel-deco">♡ ✦ ♡ ✦ ♡</div>
+    <div class="subtitle">You found a little something...</div>
+    <div class="letter" id="letter"></div>
+    <p class="help">Happy Birthday, Butku <span class="heart">♡</span></p>
+    <button id="again">PLAY AGAIN</button>
+    <button class="secondary" id="backFromEnd">BACK TO OUR LITTLE WORLD</button>
+  </section>
+</main>
+<script>
+(() => {
+ const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+ const start=document.getElementById('start'),game=document.getElementById('game'),ending=document.getElementById('ending');
+ const count=document.getElementById('count');
+ const W=800,H=360,worldW=1900,groundY=300;
+ const platforms=[
+  {x:0,y:300,w:330},{x:390,y:270,w:170},{x:610,y:235,w:150},
+  {x:810,y:275,w:180},{x:1040,y:245,w:160},{x:1240,y:280,w:180},{x:1470,y:245,w:170},{x:1680,y:300,w:220}
+ ];
+ const hearts=[{x:185,y:255},{x:450,y:225},{x:675,y:190},{x:1100,y:200},{x:1530,y:210}];
+ let player,got,camera,keys,done,raf,particles=[],enemies=[],balls=[],hasFlower=false,walkTick=0;
+ function goBackToSite(){
+   // Keep index.html and this game file in the same folder.
+   // This works both locally and on GitHub Pages when the birthday page is index.html.
+   window.location.href = './index.html';
+ }
+ function reset(){player={x:45,y:240,vx:0,vy:0,w:22,h:30,on:false,face:1};got=new Set();camera=0;keys={};done=false;particles=[];balls=[];hasFlower=false;walkTick=0;enemies=[{x:520,y:240,w:24,h:28,dir:1,min:420,max:555,alive:true},{x:920,y:245,w:24,h:28,dir:-1,min:825,max:970,alive:true},{x:1370,y:250,w:24,h:28,dir:1,min:1260,max:1410,alive:true}];hearts.forEach(h=>h.taken=false);draw()}
+ function show(which){[start,game,ending].forEach(s=>s.classList.add('hidden'));which.classList.remove('hidden')}
+ function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+ function drawHeart(x,y){ctx.fillStyle='#ed76a9';ctx.fillRect(x+4,y,8,4);ctx.fillRect(x,y+4,16,8);ctx.fillRect(x+4,y+12,8,4);ctx.fillRect(x+8,y+16,4,4);ctx.fillStyle='#fff0f6';ctx.fillRect(x+3,y+4,3,3)}
+ function drawMailbox(x,y){rect(x,y+9,28,21,'#c884ad');rect(x+2,y,26,17,'#ef9ec4');rect(x+5,y+4,20,4,'#fff0f7');rect(x+12,y+9,4,8,'#b86e9b');rect(x+11,y+30,4,9,'#a8798b');rect(x+22,y+30,4,9,'#a8798b');drawHeart(x+7,y-12)}
+ function drawEnemy(e){
+   const x=e.x-camera,y=e.y;
+   // grumpy little pixel creature with a readable HATE label
+   rect(x+4,y,16,5,'#7d456e');rect(x,y+5,24,14,'#9d5a91');rect(x+3,y+19,18,7,'#74456f');
+   rect(x+4,y+7,5,5,'#fff2e8');rect(x+15,y+7,5,5,'#fff2e8');
+   rect(x+6,y+9,2,3,'#38243f');rect(x+16,y+9,2,3,'#38243f');
+   rect(x+8,y+15,9,2,'#38243f');rect(x+1,y+25,7,3,'#74456f');rect(x+16,y+25,7,3,'#74456f');
+   ctx.fillStyle='#713d69';ctx.font='8px "Press Start 2P", monospace';ctx.textAlign='center';ctx.fillText('HATE',x+12,y-5);ctx.textAlign='left';
+ }
+ function drawFlower(){
+   if(hasFlower)return;
+   const x=865-camera,y=220;
+   // sunflower-style power-up
+   rect(x+10,y+17,4,17,'#70a96a');rect(x+2,y+24,9,4,'#70a96a');rect(x+13,y+26,8,4,'#70a96a');
+   rect(x+7,y,10,6,'#ffd66e');rect(x+2,y+5,7,7,'#ffd66e');rect(x+15,y+5,7,7,'#ffd66e');rect(x+7,y+13,10,6,'#ffd66e');rect(x+8,y+5,8,8,'#9d654d');
+   rect(x+10,y+7,2,2,'#fff0bd');rect(x+14,y+7,2,2,'#fff0bd');
+ }
+ function shootBall(){
+   if(!hasFlower||done)return;
+   const now=Date.now(); if(shootBall.last&&now-shootBall.last<380)return;shootBall.last=now;
+   balls.push({x:player.x+(player.face>0?player.w:0),y:player.y+13,vx:player.face*5.2,life:100});
+ }
+ function draw(){
+  ctx.clearRect(0,0,W,H);
+  let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#f8d9ee');g.addColorStop(1,'#d9d6ff');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // soft pixel clouds and stars
+  for(let i=0;i<13;i++){let x=((i*91-camera*.18)%(W+90)+W+90)%(W+90)-25,y=28+(i%4)*24;rect(x,y,34,7,'#fff1fa');rect(x+8,y-6,22,7,'#fff1fa');}
+  for(let i=0;i<24;i++){let x=(i*37-camera*.3)%W,y=20+(i*29)%170;rect(x,y,3,3,'#fff8d9')}
+  // distant hills
+  rect(0,260,W,100,'#c4dcb9');
+  platforms.forEach(p=>{let x=p.x-camera; if(x+p.w<0||x>W)return;rect(x,p.y,p.w,H-p.y,'#b7d8b0');rect(x,p.y,p.w,8,'#e8f0bd');for(let k=8;k<p.w;k+=18)rect(x+k,p.y+9,5,4,'#a0c995')});
+  hearts.forEach((h,i)=>{if(!got.has(i)){let x=h.x-camera,y=h.y+Math.sin(Date.now()/260+i)*3;drawHeart(x,y)}});
+  // flower power-up, HATE enemies and magic balls
+  drawFlower();
+  enemies.forEach(e=>{if(e.alive)drawEnemy(e)});
+  balls.forEach(b=>{rect(b.x-camera,b.y,10,10,'#fff0a8');rect(b.x-camera+2,b.y+2,6,6,'#ff9bca');rect(b.x-camera+3,b.y+3,3,3,'#fffdf2')});
+  // finish flag and mailbox
+  let fx=1770-camera;rect(fx,260,5,40,'#b486a6');rect(fx+5,260,24,15,'#fff2f8');rect(fx+5,268,18,4,'#ef9abc');
+  drawMailbox(1815-camera,260);
+  // little pixel person
+  const px=player.x-camera,py=player.y;
+  // shadow
+  rect(px-1,player.y+player.h,24,3,'#a5b99c');
+  // hair
+  rect(px+4,py,14,5,'#76506c');rect(px+2,py+4,18,8,'#76506c');
+  // face and body
+  rect(px+5,py+5,13,11,'#ffd7b8');rect(px+7,py+10,2,2,'#63485e');rect(px+14,py+10,2,2,'#63485e');
+  rect(px+4,py+16,15,8,'#ed8db6');rect(px+2,py+18,4,7,'#ed8db6');rect(px+17,py+18,4,7,'#ed8db6');
+  const step=(Math.abs(player.vx)>.1&&player.on)?Math.sin(walkTick/2)*2:0;
+  rect(px+5,py+24,5,6+Math.max(0,step),'#8d6c9a');rect(px+14,py+24,5,6+Math.max(0,-step),'#8d6c9a');
+  if(Math.abs(player.vx)>.1){rect(px+(player.face>0?17:0),py+18+Math.round(Math.sin(walkTick)*2),4,6,'#ed8db6')}
+  // cheeks
+  rect(px+4,py+13,3,2,'#f4a4ad');rect(px+16,py+13,3,2,'#f4a4ad');
+  count.textContent='♡ Hearts: '+got.size+' / 5'+(hasFlower?'  ✿ MAGIC BALLS READY':'  ✿ Find the flower');
+ }
+ function collide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+ function frame(){
+  if(done)return;
+  let dir=(keys.right?1:0)-(keys.left?1:0);player.vx=dir*2.5;if(dir)player.face=dir;
+  player.x=Math.max(0,Math.min(worldW-player.w,player.x+player.vx));
+  player.vy=Math.min(8,player.vy+.38);let oldY=player.y;player.y+=player.vy;player.on=false;
+  if(player.y+player.h>=H+80){player.x=Math.max(0,player.x-90);player.y=190;player.vy=0}
+  for(const p of platforms){if(player.vy>=0&&oldY+player.h<=p.y&&player.y+player.h>=p.y&&player.x+player.w>p.x&&player.x<p.x+p.w){player.y=p.y-player.h;player.vy=0;player.on=true}}
+  walkTick++;
+  // Pick up the sunflower-like flower to unlock magic-ball attacks.
+  if(!hasFlower&&Math.abs((player.x+player.w/2)-875)<28&&Math.abs((player.y+player.h/2)-235)<45){hasFlower=true;for(let n=0;n<14;n++)particles.push({x:875,y:230,vx:(Math.random()-.5)*3,vy:-Math.random()*2.5,life:28})}
+  // Collect hearts.
+  hearts.forEach((h,i)=>{if(!got.has(i)&&Math.abs((player.x+player.w/2)-h.x)<22&&Math.abs((player.y+player.h/2)-h.y)<28){got.add(i);for(let n=0;n<6;n++)particles.push({x:h.x,y:h.y,vx:(Math.random()-.5)*2,vy:-Math.random()*2,life:22})}});
+  // HATE enemies patrol their platforms. Touching one gives a gentle bounce-back.
+  enemies.forEach(e=>{if(!e.alive)return;e.x+=e.dir*.65;if(e.x<e.min||e.x>e.max)e.dir*=-1;
+    if(collide(player,{x:e.x,y:e.y,w:e.w,h:e.h})){if(player.vy>1&&player.y+player.h-e.y<14){e.alive=false;player.vy=-5;for(let n=0;n<10;n++)particles.push({x:e.x+10,y:e.y+10,vx:(Math.random()-.5)*3,vy:-Math.random()*2,life:24})}else{player.x=Math.max(0,player.x-45);player.vy=-3.5}}
+  });
+  // Magic balls defeat HATE enemies.
+  balls.forEach(b=>{b.x+=b.vx;b.life--;enemies.forEach(e=>{if(e.alive&&collide({x:b.x,y:b.y,w:10,h:10},e)){e.alive=false;b.life=0;for(let n=0;n<12;n++)particles.push({x:e.x+10,y:e.y+10,vx:(Math.random()-.5)*3,vy:-Math.random()*2,life:25})}})});
+  balls=balls.filter(b=>b.life>0&&b.x>0&&b.x<worldW);
+  particles=particles.filter(p=>p.life-->0);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.08;rect(p.x-camera,p.y,3,3,'#fff7b8')});
+  camera=Math.max(0,Math.min(worldW-W,player.x-W*.32));
+  if(player.x>1780&&got.size>=5){done=true;show(ending);typeLetter();return}
+  draw();raf=requestAnimationFrame(frame);
+ }
+ let letterTimer;
+ const message="Why are u so cute, Butku? ♡";
+ function typeLetter(){clearInterval(letterTimer);const el=document.getElementById('letter');el.textContent='';let i=0;letterTimer=setInterval(()=>{el.textContent=message.slice(0,++i);if(i>=message.length)clearInterval(letterTimer)},22)}
+ function begin(){cancelAnimationFrame(raf);reset();show(game);frame()}
+ document.getElementById('backFromStart').addEventListener('click',goBackToSite);document.getElementById('backFromEnd').addEventListener('click',goBackToSite);document.getElementById('play').addEventListener('click',begin);document.getElementById('restart').addEventListener('click',begin);document.getElementById('again').addEventListener('click',begin);
+ window.addEventListener('keydown',e=>{const k=e.key.toLowerCase();if(['arrowleft','arrowright','arrowup',' '].includes(k))e.preventDefault();if(k==='arrowleft'||k==='a')keys.left=true;if(k==='arrowright'||k==='d')keys.right=true;if(k==='arrowup'||k==='w'||k===' ') {if(player&&player.on)player.vy=-7.4;}if(k==='x'||k==='k')shootBall();});
+ window.addEventListener('keyup',e=>{const k=e.key.toLowerCase();if(k==='arrowleft'||k==='a')keys.left=false;if(k==='arrowright'||k==='d')keys.right=false});
+ function bindHold(id,key){const b=document.getElementById(id);const down=e=>{e.preventDefault();keys[key]=true},up=e=>{e.preventDefault();keys[key]=false};b.addEventListener('pointerdown',down);['pointerup','pointercancel','pointerleave'].forEach(ev=>b.addEventListener(ev,up))}
+ bindHold('left','left');bindHold('right','right');document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();if(player&&player.on)player.vy=-7.4});document.getElementById('shoot').addEventListener('pointerdown',e=>{e.preventDefault();shootBall()});
+ reset();
+})();
+</script>
+</body>
+</html>
